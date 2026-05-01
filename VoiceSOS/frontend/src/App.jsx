@@ -1,51 +1,61 @@
-import { useState } from 'react';
-import LandingScreen from './screens/LandingScreen';
-import SetupScreen from './screens/SetupScreen';
-import HomeScreen from './screens/HomeScreen';
-import SOSTimerScreen from './screens/SOSTimerScreen';
-import AlertSentScreen from './screens/AlertSentScreen';
-import AlertHistoryScreen from './screens/AlertHistoryScreen';
+import React, { useState, useEffect } from "react";
+import SetupScreen from "./screens/SetupScreen";
+import HomeScreen from "./screens/HomeScreen";
+import SOSTimerScreen from "./screens/SOSTimerScreen";
+import AlertSentScreen from "./screens/AlertSentScreen";
+import AlertHistoryScreen from "./screens/AlertHistoryScreen";
+import { getLocalContact } from "./services/storage";
+import "./styles/theme.css";
 
-function App() {
-  const [currentScreen, setCurrentScreen] = useState('landing');
-  const [alertData, setAlertData] = useState(null);
+export default function App() {
+  const [screen, setScreen] = useState("setup");
+  const [trigger, setTrigger] = useState(null);
+  const [sentAlert, setSentAlert] = useState(null);
+  const [backendStatus, setBackendStatus] = useState("checking...");
 
-  const renderScreen = () => {
-    switch (currentScreen) {
-      case 'landing':
-        return <LandingScreen onNext={() => setCurrentScreen('setup')} />;
-      case 'setup':
-        return <SetupScreen onComplete={() => setCurrentScreen('home')} />;
-      case 'home':
-        return <HomeScreen 
-                 onTriggerSOS={() => setCurrentScreen('sostimer')} 
-                 onViewHistory={() => setCurrentScreen('history')} 
-               />;
-      case 'sostimer':
-        return <SOSTimerScreen 
-                 onCancel={() => setCurrentScreen('home')} 
-                 onAlertSent={(data) => {
-                   setAlertData(data);
-                   setCurrentScreen('alertsent');
-                 }} 
-               />;
-      case 'alertsent':
-        return <AlertSentScreen 
-                 alertData={alertData} 
-                 onHome={() => setCurrentScreen('home')} 
-               />;
-      case 'history':
-        return <AlertHistoryScreen onBack={() => setCurrentScreen('home')} />;
-      default:
-        return <LandingScreen onNext={() => setCurrentScreen('setup')} />;
-    }
-  };
+  useEffect(() => {
+    fetch("http://localhost:5000/api/health")
+      .then(r => r.json())
+      .then(d => setBackendStatus(d.status === "ok" ? "connected" : "error"))
+      .catch(() => setBackendStatus("offline"));
+
+    if (getLocalContact()) setScreen("home");
+  }, []);
 
   return (
-    <div className="app-container">
-      {renderScreen()}
-    </div>
+    <>
+      {screen === "setup" && (
+        <SetupScreen onContinue={() => setScreen("home")} />
+      )}
+      {screen === "home" && (
+        <HomeScreen
+          onTriggerSOS={(t) => { setTrigger(t); setScreen("sos"); }}
+          onViewHistory={() => setScreen("history")}
+        />
+      )}
+      {screen === "sos" && trigger && (
+        <SOSTimerScreen
+          trigger={trigger}
+          onCancel={() => setScreen("home")}
+          onSent={(a) => { setSentAlert(a); setScreen("sent"); }}
+        />
+      )}
+      {screen === "sent" && sentAlert && (
+        <AlertSentScreen
+          alert={sentAlert}
+          onBackHome={() => setScreen("home")}
+        />
+      )}
+      {screen === "history" && (
+        <AlertHistoryScreen onBack={() => setScreen("home")} />
+      )}
+      <div style={{
+        position: "fixed", bottom: 8, right: 8,
+        fontSize: 10, color: "rgba(255,255,255,0.4)",
+        background: "rgba(0,0,0,0.5)", padding: "4px 8px", borderRadius: 8
+      }}>
+        backend: {backendStatus}
+      </div>
+    </>
   );
 }
-
-export default App;

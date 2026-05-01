@@ -1,24 +1,33 @@
-import React from 'react';
+import React from "react";
 
-const ConfidenceMeter = ({ confidence, label }) => {
-  const getColor = () => {
-    if (confidence > 80) return 'var(--danger-red)';
-    if (confidence > 50) return 'var(--warning-yellow)';
-    return 'var(--success-green)';
-  };
+export default function ConfidenceMeter({ value = 0, label = "Normal" }) {
+  const radius = 80;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (value / 100) * circumference;
+
+  let stroke = "var(--safe-green)";
+  if (value >= 70) stroke = "var(--danger-red)";
+  else if (value >= 40) stroke = "var(--warning-amber)";
 
   return (
-    <div className="glass-card mt-2">
-      <div className="flex justify-between items-center mb-1">
-        <h4 style={{ margin: 0 }}>Distress Confidence</h4>
-        <span style={{ color: getColor(), fontWeight: 'bold' }}>{confidence}%</span>
+    <div className="meter-wrap" style={{ position: "relative" }}>
+      <svg className="meter-svg" width="200" height="200">
+        <circle className="meter-track" cx="100" cy="100" r={radius} />
+        <circle
+          className="meter-progress"
+          cx="100"
+          cy="100"
+          r={radius}
+          stroke={stroke}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          style={{ filter: `drop-shadow(0 0 10px ${stroke})` }}
+        />
+      </svg>
+      <div className="meter-center">
+        <div className="meter-value" style={{ color: stroke }}>{value}%</div>
+        <div className="meter-label">{label}</div>
       </div>
-      <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
-        <div style={{ width: `${confidence}%`, height: '100%', background: getColor(), transition: 'width 0.5s ease' }}></div>
-      </div>
-      <p className="mt-1 text-center" style={{ color: getColor() }}>{label}</p>
     </div>
   );
-};
-
-export default ConfidenceMeter;
+}
