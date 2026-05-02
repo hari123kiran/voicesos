@@ -232,5 +232,26 @@
     "audioUrl": "/uploads/1777679773647.webm",
     "contactName": "DAD",
     "contactPhone": "916363717035"
+  },
+  {
+    "id": "1777681467125",
+    "timestamp": "2026-05-02T00:24:27.125Z",
+    "status": "sent",
+    "triggerPhrase": "help help",
+    "confidence": 84,
+    "label": "Emergency",
+    "reasons": [
+      "Exact emergency phrase detected: \"help\"",
+      "Distress keywords detected: help (×2)",
+      "Confidence 84% ≥ 70 → Emergency action triggered"
+    ],
+    "location": {
+      "lat": 12.92943,
+      "lng": 77.6225075,
+      "mapLink": "https://www.google.com/maps?q=12.92943,77.6225075"
+    },
+    "audioUrl": "/uploads/1777681467095.webm",
+    "contactName": "DAD",
+    "contactPhone": "916363717035"
   }
 ]

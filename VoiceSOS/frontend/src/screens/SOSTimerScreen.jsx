@@ -4,7 +4,7 @@ import { speak, stopSpeaking } from "../services/voiceService";
 import { getLocation } from "../services/locationService";
 import { recordAudio } from "../services/audioService";
 import { uploadAudio, saveAlert } from "../services/api";
-import { getLocalContact } from "../services/storage";
+import { getLocalContacts, getPrimaryContact } from "../services/storage";
 
 export default function SOSTimerScreen({ trigger, onCancel, onSent }) {
   const [countdown, setCountdown] = useState(10);
@@ -47,7 +47,8 @@ export default function SOSTimerScreen({ trigger, onCancel, onSent }) {
       } catch (e) { console.warn("Audio upload failed"); }
     }
 
-    const contact = getLocalContact();
+    const allContacts = getLocalContacts();
+    const primary = getPrimaryContact();
     setStatusText("Saving alert...");
 
     const alert = {
@@ -58,8 +59,9 @@ export default function SOSTimerScreen({ trigger, onCancel, onSent }) {
       reasons: trigger.reasons,
       location: location || { lat: null, lng: null, mapLink: "Location unavailable" },
       audioUrl,
-      contactName: contact?.name || "Unknown",
-      contactPhone: contact?.phone || ""
+      contactName: primary?.name || "Unknown",
+      contactPhone: primary?.phone || "",
+      allContacts: allContacts.map(c => ({ name: c.name, phone: c.phone, role: c.role }))
     };
 
     try { await saveAlert(alert); } catch (e) { console.warn("Alert save failed"); }
@@ -76,13 +78,18 @@ Location: ${location?.mapLink || "unavailable"}
 
 Audio evidence captured in app dashboard.`;
 
-    const waLink = contact?.phone
-      ? `https://wa.me/${contact.phone}?text=${encodeURIComponent(message)}`
-      : null;
+    // Build WhatsApp links for ALL contacts so user can quickly message each
+    const waLinks = allContacts.map(c => ({
+      name: c.name,
+      role: c.role,
+      phone: c.phone,
+      waLink: `https://wa.me/${c.phone}?text=${encodeURIComponent(message)}`
+    }));
+    const primaryWaLink = waLinks[0]?.waLink || null;
 
     setPhase("sent");
     speak("Alert sent successfully. Your trusted contact has been notified.");
-    onSent({ ...alert, waLink });
+    onSent({ ...alert, waLink: primaryWaLink, waLinks });
   }
 
   function handleCancel() {

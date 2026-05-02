@@ -4,7 +4,7 @@ import HomeScreen from "./screens/HomeScreen";
 import SOSTimerScreen from "./screens/SOSTimerScreen";
 import AlertSentScreen from "./screens/AlertSentScreen";
 import AlertHistoryScreen from "./screens/AlertHistoryScreen";
-import { getLocalContact } from "./services/storage";
+import { getLocalContacts } from "./services/storage";
 import "./styles/theme.css";
 
 export default function App() {
@@ -19,7 +19,7 @@ export default function App() {
       .then(d => setBackendStatus(d.status === "ok" ? "connected" : "error"))
       .catch(() => setBackendStatus("offline"));
 
-    if (getLocalContact()) setScreen("home");
+    if (getLocalContacts().length > 0) setScreen("home");
   }, []);
 
   return (

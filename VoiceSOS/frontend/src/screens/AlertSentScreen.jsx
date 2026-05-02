@@ -42,14 +42,35 @@ export default function AlertSentScreen({ alert, onBackHome }) {
         </div>
       </div>
 
-      {alert.waLink && (
+      {alert.waLinks && alert.waLinks.length > 0 ? (
+        <div className="glass-card" style={{ padding: 14 }}>
+          <div className="section-title" style={{ marginBottom: 10 }}>Notify Trusted Contacts</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 12 }}>
+            Tap to open a pre-filled WhatsApp message. The {alert.waLinks[0]?.role} contact is your primary.
+          </div>
+          {alert.waLinks.map((c, i) => (
+            <a key={i} href={c.waLink} target="_blank" rel="noreferrer" style={{ textDecoration: "none", display: "block", marginBottom: 8 }}>
+              <button
+                className={i === 0 ? "btn btn-primary" : "btn btn-ghost"}
+                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, width: "100%" }}
+              >
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Phone size={16} />
+                  <span>{c.name}</span>
+                </span>
+                <span style={{ fontSize: 11, opacity: 0.8, textTransform: "uppercase", letterSpacing: 1 }}>{c.role}</span>
+              </button>
+            </a>
+          ))}
+        </div>
+      ) : alert.waLink ? (
         <a href={alert.waLink} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}>
           <button className="btn btn-primary" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
             <Phone size={18} />
             Open WhatsApp Alert
           </button>
         </a>
-      )}
+      ) : null}
 
       <button className="btn btn-ghost" onClick={onBackHome} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 10 }}>
         <ArrowLeft size={18} />
