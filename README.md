@@ -107,7 +107,7 @@ Backend runs at http://localhost:5000.
 
 ## Team
 
-- Harikiran (Leo): built the AI engine, backend, full-stack integration. Carried the build overnight.
+- Harikiran (Leo): built the AI engine, backend, full-stack integration. 
 - Vrunda: frontend polish and mobile feel
 - Prajwal: demo phrases, AI test cases, content
 - Anusha: pitch deck and presentation
