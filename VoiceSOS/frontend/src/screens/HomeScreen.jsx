@@ -24,10 +24,20 @@ export default function HomeScreen({ onTriggerSOS, onViewHistory }) {
     const r = classifyDistress(input);
     // Map "Normal" to "Safe" for the meter UI
     const displayLabel = r.label === "Normal" ? "Safe" : r.label;
-    setResult({ ...r, label: displayLabel });
-    // Auto-trigger SOS for Emergency
+
+    // Reset meter so it visibly re-animates
+    setResult({ confidence: 0, label: "Safe", reasons: [] });
+
+    // Show the AI result first (meter fills, reasons appear)
+    setTimeout(() => {
+      setResult({ ...r, label: displayLabel });
+    }, 80);
+
+    // If Emergency, wait 1.5 seconds AFTER the meter fills, so user/judge SEES the score before SOS
     if (r.label === "Emergency" && onTriggerSOS) {
-      onTriggerSOS({ phrase: input, ...r });
+      setTimeout(() => {
+        onTriggerSOS({ phrase: input, ...r });
+      }, 1600);
     }
   }
 
@@ -95,8 +105,17 @@ export default function HomeScreen({ onTriggerSOS, onViewHistory }) {
           style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
         >
           <Mic size={18} />
-          {listening ? "Listening... say something" : "Start Voice Detection"}
+          {listening ? "Listening..." : "Start Voice Detection"}
         </button>
+        {listening && (
+          <div className="voice-wave">
+            <div className="bar"></div>
+            <div className="bar"></div>
+            <div className="bar"></div>
+            <div className="bar"></div>
+            <div className="bar"></div>
+          </div>
+        )}
         <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8, textAlign: "center" }}>
           VoiceSOS listens only when you tap the button. Best in Chrome.
         </div>
@@ -128,7 +147,7 @@ export default function HomeScreen({ onTriggerSOS, onViewHistory }) {
       <ExplanationCard reasons={result.reasons} />
 
       <button
-        className="btn btn-danger"
+        className="btn btn-danger pulse"
         onClick={() => onTriggerSOS && onTriggerSOS({ phrase: "Manual HELP button", confidence: 100, label: "Emergency", reasons: ["Manual HELP button pressed by user"] })}
         style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
       >
@@ -136,10 +155,32 @@ export default function HomeScreen({ onTriggerSOS, onViewHistory }) {
         HELP
       </button>
 
-      <div style={{ fontSize: 10, color: "var(--text-muted)", textAlign: "center", marginTop: 16, lineHeight: 1.6 }}>
-        AI Engine: Custom Distress Classifier · {datasetInfo.totalSamples} samples<br />
-        Method: Levenshtein fuzzy matching + weighted scoring<br />
-        No external datasets · No Kaggle · Built ethically
+      <div className="glass-card" style={{ marginTop: 20, padding: 14 }}>
+        <div className="section-title" style={{ marginBottom: 8 }}>How It Works</div>
+        <div style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.7 }}>
+          <div>🧠 AI Engine: Custom Distress Classifier · <strong>{datasetInfo.totalSamples} samples</strong></div>
+          <div>🔤 Method: Levenshtein fuzzy matching + weighted scoring</div>
+          <div>🌐 Voice: Browser-native (Chrome recommended)</div>
+          <div>📍 Location: Real-time GPS</div>
+          <div>🎙️ Audio: 20-second evidence recording</div>
+          <div>💬 Alert: WhatsApp deep-link (no app install for receiver)</div>
+        </div>
+      </div>
+
+      <div className="glass-card" style={{ marginTop: 10, padding: 14, borderLeft: "3px solid var(--neon-blue)" }}>
+        <div className="section-title" style={{ marginBottom: 8, color: "var(--neon-blue)" }}>Future Scope</div>
+        <div style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.7 }}>
+          <div>🚔 Integration with India's ERSS-112 emergency response system</div>
+          <div>🌍 Multilingual distress detection (Hindi, Kannada, Tamil)</div>
+          <div>⌚ Wearable sync (smartwatch SOS trigger)</div>
+          <div>📡 Offline mode with SMS fallback</div>
+          <div>🤝 Community-sourced safe-zone heatmap</div>
+        </div>
+      </div>
+
+      <div style={{ fontSize: 10, color: "var(--text-muted)", textAlign: "center", marginTop: 14, lineHeight: 1.6 }}>
+        No external datasets · No Kaggle · Built ethically<br />
+        Custom dataset includes accent variations for Indian English
       </div>
     </div>
   );

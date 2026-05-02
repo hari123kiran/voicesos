@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { AlertTriangle, X } from "lucide-react";
+import { speak, stopSpeaking } from "../services/voiceService";
 import { getLocation } from "../services/locationService";
 import { recordAudio } from "../services/audioService";
 import { uploadAudio, saveAlert } from "../services/api";
@@ -10,6 +11,11 @@ export default function SOSTimerScreen({ trigger, onCancel, onSent }) {
   const [phase, setPhase] = useState("countdown"); // countdown | sending | sent
   const [statusText, setStatusText] = useState("");
   const cancelledRef = useRef(false);
+
+  useEffect(() => {
+    speak("Emergency detected. Sending S O S alert in 10 seconds. Tap cancel if false alarm.");
+    return () => stopSpeaking();
+  }, []);
 
   useEffect(() => {
     if (countdown > 0 && phase === "countdown") {
@@ -75,11 +81,14 @@ Audio evidence captured in app dashboard.`;
       : null;
 
     setPhase("sent");
+    speak("Alert sent successfully. Your trusted contact has been notified.");
     onSent({ ...alert, waLink });
   }
 
   function handleCancel() {
     cancelledRef.current = true;
+    stopSpeaking();
+    speak("S O S cancelled. You are safe.");
     onCancel();
   }
 

@@ -93,7 +93,7 @@ export function classifyDistress(input) {
   // STEP 1: Exact emergency phrase match (high confidence)
   for (const phrase of emergencyPhrases) {
     if (text.includes(phrase)) {
-      confidence += 50;
+      confidence += 60;
       reasons.push(`Exact emergency phrase detected: "${phrase}"`);
       break;
     }
@@ -117,16 +117,18 @@ export function classifyDistress(input) {
     );
   }
 
-  // STEP 3: Distress keyword scan (additive boost)
+  // STEP 3: Distress keyword scan (counts EACH occurrence — repeated words = more urgency)
   const foundKeywords = [];
   for (const kw of distressKeywords) {
-    if (text.includes(kw)) {
-      confidence += 12;
-      foundKeywords.push(kw);
+    // Count how many times this keyword appears (e.g. "help help" = 2)
+    const matches = text.split(/\W+/).filter(w => w === kw).length;
+    if (matches > 0) {
+      confidence += 12 * Math.min(matches, 3); // cap at 3x boost per keyword
+      foundKeywords.push(matches > 1 ? `${kw} (×${matches})` : kw);
     }
   }
   if (foundKeywords.length > 0) {
-    reasons.push(`Distress keywords found: ${foundKeywords.join(", ")}`);
+    reasons.push(`Distress keywords detected: ${foundKeywords.join(", ")}`);
   }
 
   // STEP 4: Non-emergency context penalty
